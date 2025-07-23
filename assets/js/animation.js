@@ -1,12 +1,9 @@
-// Register GSAP and ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
 
-// Initialize Lenis for smooth scrolling
 const lenis = new Lenis({
-  duration: 1.2, // Smooth scroll duration
+  duration: 1.2,
 });
 
-// Sync Lenis with ScrollTrigger
 lenis.on("scroll", ScrollTrigger.update);
 
 gsap.ticker.add((time) => {
@@ -15,78 +12,62 @@ gsap.ticker.add((time) => {
 
 gsap.ticker.lagSmoothing(0);
 
-const preloaderIcon = document.querySelectorAll(".preloader-item");
-const container = document.querySelector(".preloader-container");
-const floadingProduct = document.querySelector(".in_view-after-laoding");
-const numberOfItems = preloaderIcon.length;
-const angleIncrement = (2 * Math.PI) / numberOfItems;
-const radius = 370;
-let isGalleryOpen = false;
-const centerX = container.offsetWidth / 2;
-const centerY = container.offsetHeight / 2;
-const tl = gsap.timeline();
+function preloader() {
+  const preloaderIcon = document.querySelectorAll(".preloader-item");
+  const container = document.querySelector(".preloader-container");
+  const floadingProduct = document.querySelector(".in_view-after-laoding");
+  const numberOfItems = preloaderIcon.length;
+  const angleIncrement = (2 * Math.PI) / numberOfItems;
+  const radius = 370;
+  let isGalleryOpen = false;
+  const centerX = container.offsetWidth / 2;
+  const centerY = container.offsetHeight / 2;
+  const tl = gsap.timeline();
 
-// Ensure ScrollTrigger is registered
-gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger);
 
-// Set initial scale of floadingProduct to 0
-gsap.set(floadingProduct, { scale: 0, x: 0 });
+  gsap.set(floadingProduct, { scale: 0, x: 0 });
 
-// Animate preloader items in a circular pattern
-preloaderIcon.forEach(function (item, index) {
-  const img = document.createElement("img");
-  img.src = `./assets/images/preloading-product-image-1.png`; // Use the same image for all items
-  item.appendChild(img);
-  const angle = index * angleIncrement;
-  const initialRotation = (angle * 180) / Math.PI - 90;
-  const x = centerX + radius * Math.cos(angle);
-  const y = centerY + radius * Math.sin(angle);
+  preloaderIcon.forEach(function (item, index) {
+    const img = document.createElement("img");
+    img.src = `assets/images/preloading-product-image-1.png`;
+    item.appendChild(img);
+    const angle = index * angleIncrement;
+    const initialRotation = (angle * 180) / Math.PI - 90;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
 
-  gsap.set(item, { scale: 0 });
-  tl.to(
-    item,
-    {
-      left: `${x}px`,
-      top: `${y}px`,
-      rotation: initialRotation,
-      scale: 1,
-      duration: 1,
-      ease: "power2.out",
-      delay: 1,
-    },
-    index * 0.1
-  );
-});
+    gsap.set(item, { scale: 0 });
+    tl.to(
+      item,
+      {
+        left: `${x}px`,
+        top: `${y}px`,
+        rotation: initialRotation,
+        scale: 1,
+        duration: 1,
+        ease: "power2.out",
+        delay: 1,
+      },
+      index * 0.1
+    );
+  });
 
-// Animate floadingProduct from scale 0 to 0.6
-tl.to(floadingProduct, {
-  scale: 0.6,
-  duration: 0.5,
-  ease: "power2.out",
-});
+  tl.to(floadingProduct, {
+    scale: 0.6,
+    duration: 0.5,
+    ease: "power2.out",
+  });
 
-// Scale down all preloaderIcon items to 0 after floadingProduct animation
-tl.to(preloaderIcon, {
-  scale: 0,
-  duration: 0.5,
-  ease: "power2.in",
-  stagger: 0.05, // Staggered effect for smoother transition
-});
+  tl.to(preloaderIcon, {
+    scale: 0,
+    duration: 0.5,
+    ease: "power2.in",
+    stagger: 0.05,
+  });
+}
+preloader();
 
-// Animate floadingProduct to move 100px on x-axis and scale to 0.3 gradually with scroll
-gsap.to(floadingProduct, {
-  x: 100, // Move 100px along x-axis
-  scale: 0.3,
-  scrollTrigger: {
-    trigger: ".hero_area", // Trigger when .hero_area enters viewport
-    start: "top bottom", // Start when top of hero_area hits bottom of viewport
-    end: "bottom top", // End when bottom of hero_area hits top of viewport
-    scrub: true, // Animation progresses with scroll position
-    markers: true, // Visual debug markers (set to false in production)
-  },
-});
-
-// Helper function to create ScrollTrigger animations
 function createScrollAnimation({
   trigger,
   animation,
@@ -98,11 +79,9 @@ function createScrollAnimation({
   isMobile = window.innerWidth <= 768,
   toggleActions = "play none none none",
 }) {
-  // Adjust start and end for mobile if needed
   const mobileStart = isMobile ? "top 90%" : start;
   const mobileEnd = isMobile ? "bottom 10%" : end;
 
-  // Create ScrollTrigger instance
   return ScrollTrigger.create({
     trigger,
     animation,
@@ -112,26 +91,41 @@ function createScrollAnimation({
     pin,
     markers,
     toggleActions,
-    invalidateOnRefresh: true, // Recalculate on resize
+    invalidateOnRefresh: true,
   });
 }
 
-// Service items stacking animation
+function animateGlobe() {
+  const globeAnimation = gsap.to("#globe", {
+    rotateZ: 900,
+    transformOrigin: "center center",
+    ease: "linear",
+  });
+
+  createScrollAnimation({
+    trigger: "#globe_container",
+    animation: globeAnimation,
+    start: "top center",
+    end: "+=1000",
+    endTrigger: ".sustainability-section",
+    scrub: 8,
+    markers: false,
+    isMobile: false,
+  });
+}
+
 function animateServiceItems() {
   const serviceItems = gsap.utils.toArray(".service_item");
-  const itemsToAnimate = serviceItems.slice(1); // Exclude the first item
+  const itemsToAnimate = serviceItems.slice(1);
 
-  // Create a timeline for the stacking animation
   const tl = gsap.timeline();
 
-  // Animate items to stack with offset
   tl.to(itemsToAnimate, {
-    x: (index) => -(index + 1) * 300, // Move left for partial overlap
+    x: (index) => -(index + 1) * 300,
     duration: 1,
     stagger: 0.2,
   });
 
-  // Use helper function to attach ScrollTrigger
   createScrollAnimation({
     trigger: ".service_area",
     animation: tl,
@@ -139,7 +133,7 @@ function animateServiceItems() {
     end: () => "+=" + (serviceItems.length - 1) * 500,
     scrub: true,
     pin: true,
-    markers: false, // Set to false in production
+    markers: false,
   });
 }
 
@@ -147,38 +141,27 @@ function animateOnView() {
   const items = gsap.utils.toArray(".view_init");
 
   items.forEach((item) => {
-    // Determine if the item is in the left or right column
     const isLeftColumn = item.closest(".review_col:first-child");
 
-    // Set animation properties based on column
     const animation = gsap.from(item, {
       opacity: 0,
       duration: 2,
       filter: "blur(20px)",
-      x: isLeftColumn ? "-30%" : "30%", // Left: -30%, Right: 30%
-      rotate: isLeftColumn ? "-30deg" : "30deg", // Left: -30deg, Right: 30deg
+      x: isLeftColumn ? "-30%" : "30%",
+      rotate: isLeftColumn ? "-30deg" : "30deg",
       ease: "linear",
     });
 
-    // Use helper function to attach ScrollTrigger
     createScrollAnimation({
       trigger: item,
       animation,
-      start: "top 90%", // Default for desktop
+      start: "top 90%",
       end: "bottom bottom",
       scrub: 0.8,
       markers: false,
     });
   });
 }
-
-/*
-
-This is function is handling the sticky header
-It will add a class to the header when the user scrolls down
-It will remove the class when the user scrolls up
-
-*/
 
 function stickyScroll() {
   let lastScrollTop = 50;
@@ -221,7 +204,6 @@ function stickyScroll() {
 }
 stickyScroll();
 
-// Cursor
 function setupCustomCursor() {
   const cursor = document.querySelector(".custom-drag-cursor");
   if (!cursor || typeof gsap === "undefined") {
@@ -269,7 +251,6 @@ function setupCustomCursor() {
 }
 
 function hoverText() {
-  // Exit early if GSAP is not loaded
   if (typeof gsap === "undefined") {
     console.warn(
       "GSAP library is not loaded. Hover text animations will not work."
@@ -277,23 +258,18 @@ function hoverText() {
     return;
   }
 
-  // Select all staggered items
   const items = document.querySelectorAll(".staggered-item");
 
-  // Exit early if no items are found
   if (!items.length) {
     console.warn("No staggered items (.staggered-item) found on the page.");
     return;
   }
 
-  // Store timelines for each staggered item
   const itemTimelines = new Map();
 
   items.forEach((item) => {
-    // Find the main span
     const mainSpan = item.querySelector("span");
 
-    // Skip item if main span is not found
     if (!mainSpan) {
       console.warn("Main span not found in staggered item:", item);
       return;
@@ -302,14 +278,12 @@ function hoverText() {
     const originalText = mainSpan.innerText;
     mainSpan.innerHTML = "";
 
-    // Create default and hover layers
     const defaultLayer = document.createElement("div");
     defaultLayer.classList.add("default-text");
 
     const hoverLayer = document.createElement("div");
     hoverLayer.classList.add("hover-text");
 
-    // Split text into characters
     originalText.split("").forEach((char) => {
       const defaultChar = document.createElement("span");
       defaultChar.classList.add("letter");
@@ -322,15 +296,12 @@ function hoverText() {
       hoverLayer.appendChild(hoverChar);
     });
 
-    // Append layers to main span
     mainSpan.appendChild(defaultLayer);
     mainSpan.appendChild(hoverLayer);
 
-    // Select letters
     const defaultLetters = defaultLayer.querySelectorAll(".letter");
     const hoverLetters = hoverLayer.querySelectorAll(".letter");
 
-    // Verify letters exist
     if (!defaultLetters.length || !hoverLetters.length) {
       console.warn(
         "No letters found in default or hover layers for item:",
@@ -339,7 +310,6 @@ function hoverText() {
       return;
     }
 
-    // Create GSAP timeline
     const tl = gsap.timeline({ paused: true });
 
     defaultLetters.forEach((letter, i) => {
@@ -356,24 +326,19 @@ function hoverText() {
       }
     });
 
-    // Store the timeline for this item
     itemTimelines.set(item, tl);
 
-    // Find the closest parent with .stagger_card class, if any
     const staggerCardParent = item.closest(".stagger_card");
 
     if (!staggerCardParent) {
-      // If no .stagger_card parent, use original behavior
       item.addEventListener("mouseenter", () => tl.play());
       item.addEventListener("mouseleave", () => tl.reverse());
     }
   });
 
-  // Handle .stagger_card parents
   const staggerCards = document.querySelectorAll(".stagger_card");
   staggerCards.forEach((card) => {
     card.addEventListener("mouseenter", () => {
-      // Play timelines for all .staggered-item children
       const childItems = card.querySelectorAll(".staggered-item");
       childItems.forEach((childItem) => {
         const tl = itemTimelines.get(childItem);
@@ -381,7 +346,6 @@ function hoverText() {
       });
     });
     card.addEventListener("mouseleave", () => {
-      // Reverse timelines for all .staggered-item children
       const childItems = card.querySelectorAll(".staggered-item");
       childItems.forEach((childItem) => {
         const tl = itemTimelines.get(childItem);
@@ -390,37 +354,27 @@ function hoverText() {
     });
   });
 }
+
 function scrollOnView() {
-  // Select the row to animate
   const machinesRow = document.querySelector(".our_machines-row");
   const machinesInner = document.querySelector(".our_machines-inner");
 
-  // Set initial state
-  gsap.set(machinesRow, { xPercent: 65 }); // Shift row left so ~20% of first item is visible
+  gsap.set(machinesRow, { xPercent: 65 });
 
-  // Create animation timeline
   const tl = gsap.timeline({
     scrollTrigger: {
       trigger: machinesInner,
-      start: "15% top", // Start when top of section hits 20% from top of viewport
-      end: "+=100%", // Extend duration for smooth scroll animation
-      pin: true, // Pin the section
-      scrub: 1, // Smoothly tie animation to scroll
-      markers: false, // Set to true for debugging
+      start: "15% top",
+      end: "+=110%",
+      pin: true,
+      scrub: 1,
+      markers: false,
     },
   });
 
-  // Animate row into view
-  tl.to(machinesRow, { xPercent: 0, duration: 1, ease: "power2.out" }); // Slide row fully into view
+  tl.to(machinesRow, { xPercent: 0, duration: 3, ease: "ease" });
 }
 scrollOnView();
-
-/*
-This is function is for the text animation
-Line by Line Staggering the text with custom ease
-
-
-*/
 
 function textAnimation() {
   const SplittingTextConfig = {
@@ -432,10 +386,9 @@ function textAnimation() {
     opacity: 0,
     stagger: 0.1,
     ease: "cubic-bezier(0.77, 0, 0.175, 1)",
-    start: "top 95%",
+    start: "top 90%",
   };
 
-  // Set initial visibility to hidden for all targeted elements
   document.querySelectorAll(SplittingTextConfig.selector).forEach((element) => {
     element.style.visibility = "hidden";
   });
@@ -479,7 +432,6 @@ function textAnimation() {
           start: SplittingTextConfig.start,
           animation: animation,
           toggleActions: "play none none reverse",
-          // markers: true,
         });
       });
     } else {
@@ -492,25 +444,21 @@ function textAnimation() {
 
 document.body.classList.add("animation_init");
 
-// Initialize animations
 function initializeAnimations() {
-  // Ensure animations are set up after DOM is loaded
   document.addEventListener("DOMContentLoaded", () => {
     animateServiceItems();
     animateOnView();
     setupCustomCursor();
     textAnimation();
-
+    animateGlobe();
     hoverText();
-    // Refresh ScrollTrigger to ensure proper calculations
+
     ScrollTrigger.refresh();
   });
 
-  // Handle window resize to update triggers
   window.addEventListener("resize", () => {
     ScrollTrigger.refresh();
   });
 }
 
-// Run initialization
 initializeAnimations();
